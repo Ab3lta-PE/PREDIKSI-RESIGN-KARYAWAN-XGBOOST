@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Attrition Predictor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 9999px; background: #4f46e5; cursor: pointer; margin-top: -7px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 9999px; background: #e0e7ff; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <header class="bg-indigo-700 text-white py-6 shadow">
+    <div class="max-w-4xl mx-auto px-4">
+      <h1 class="text-2xl font-bold">Employee Attrition Predictor</h1>
+      <p class="text-indigo-100 text-sm mt-1">Prediksi risiko resign karyawan berdasarkan data HR</p>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <form id="predictForm" class="bg-white rounded-2xl shadow p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Numeric sliders -->
+      <div class="space-y-5 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Usia (Age) <span id="AgeVal" class="text-indigo-600 font-semibold">36</span></label>
+          <input type="range" name="Age" min="18" max="60" value="36" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Gaji Bulanan (MonthlyIncome) <span id="MonthlyIncomeVal" class="text-indigo-600 font-semibold">5005</span></label>
+          <input type="range" name="MonthlyIncome" min="1000" max="20000" step="100" value="5005" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Jarak Rumah ke Kantor (km) <span id="DistanceFromHomeVal" class="text-indigo-600 font-semibold">7</span></label>
+          <input type="range" name="DistanceFromHome" min="0" max="30" value="7" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Jumlah Perusahaan Sebelumnya <span id="NumCompaniesWorkedVal" class="text-indigo-600 font-semibold">2</span></label>
+          <input type="range" name="NumCompaniesWorked" min="0" max="9" value="2" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Total Tahun Bekerja <span id="TotalWorkingYearsVal" class="text-indigo-600 font-semibold">10</span></label>
+          <input type="range" name="TotalWorkingYears" min="0" max="40" value="10" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Lama di Perusahaan Ini (tahun) <span id="YearsAtCompanyVal" class="text-indigo-600 font-semibold">5</span></label>
+          <input type="range" name="YearsAtCompany" min="0" max="40" value="5" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Lama di Role Saat Ini (tahun) <span id="YearsInCurrentRoleVal" class="text-indigo-600 font-semibold">3</span></label>
+          <input type="range" name="YearsInCurrentRole" min="0" max="20" value="3" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Kenaikan Gaji Terakhir (%) <span id="PercentSalaryHikeVal" class="text-indigo-600 font-semibold">14</span></label>
+          <input type="range" name="PercentSalaryHike" min="10" max="25" value="14" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Kepuasan Kerja (1-4) <span id="JobSatisfactionVal" class="text-indigo-600 font-semibold">3</span></label>
+          <input type="range" name="JobSatisfaction" min="1" max="4" value="3" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Kepuasan Lingkungan (1-4) <span id="EnvironmentSatisfactionVal" class="text-indigo-600 font-semibold">3</span></label>
+          <input type="range" name="EnvironmentSatisfaction" min="1" max="4" value="3" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Work-Life Balance (1-4) <span id="WorkLifeBalanceVal" class="text-indigo-600 font-semibold">3</span></label>
+          <input type="range" name="WorkLifeBalance" min="1" max="4" value="3" class="w-full">
+        </div>
+        <div>
+          <label class="flex justify-between text-sm font-medium mb-1">Stock Option Level (0-3) <span id="StockOptionLevelVal" class="text-indigo-600 font-semibold">1</span></label>
+          <input type="range" name="StockOptionLevel" min="0" max="3" value="1" class="w-full">
+        </div>
+      </div>
+
+      <hr class="md:col-span-2 border-slate-200">
+
+      <!-- Categorical dropdowns (auto-generated from ONEHOT_GROUPS) -->
+      {% for group, cfg in groups.items() %}
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ group }}</label>
+        <select name="{{ group }}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          {% for opt in cfg.options %}
+          <option value="{{ opt }}">{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endfor %}
+
+      <button type="submit" class="md:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">
+        Jalankan Prediksi
+      </button>
+    </form>
+
+    <!-- Result panel -->
+    <div id="resultPanel" class="hidden mt-6 bg-white rounded-2xl shadow p-6">
+      <h2 class="text-lg font-bold mb-3">Hasil Prediksi</h2>
+      <p class="text-sm text-slate-500 mb-2">Status prediksi:
+        <span id="predLabel" class="font-semibold"></span>
+      </p>
+      <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden flex">
+        <div id="riskBar" class="bg-rose-500 h-4"></div>
+        <div id="stayBar" class="bg-emerald-500 h-4"></div>
+      </div>
+      <div class="flex justify-between text-xs mt-1 text-slate-500">
+        <span>Risiko Resign: <span id="riskPct" class="font-semibold text-rose-600"></span></span>
+        <span>Bertahan: <span id="stayPct" class="font-semibold text-emerald-600"></span></span>
+      </div>
+    </div>
+
+    <p id="errorMsg" class="hidden mt-4 text-rose-600 text-sm"></p>
+  </main>
+
+<script>
+  // Update slider value labels live
+  document.querySelectorAll('input[type=range]').forEach(el => {
+    el.addEventListener('input', () => {
+      document.getElementById(el.name + 'Val').textContent = el.value;
+    });
+  });
+
+  const form = document.getElementById('predictForm');
+  const resultPanel = document.getElementById('resultPanel');
+  const errorMsg = document.getElementById('errorMsg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const payload = {};
+    formData.forEach((value, key) => { payload[key] = value; });
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan');
+
+      document.getElementById('predLabel').textContent =
+        data.prediction === 'Yes' ? 'Berisiko Resign' : 'Kemungkinan Bertahan';
+      document.getElementById('predLabel').className =
+        'font-semibold ' + (data.prediction === 'Yes' ? 'text-rose-600' : 'text-emerald-600');
+
+      document.getElementById('riskBar').style.width = data.attrition_risk_pct + '%';
+      document.getElementById('stayBar').style.width = data.stay_pct + '%';
+      document.getElementById('riskPct').textContent = data.attrition_risk_pct + '%';
+      document.getElementById('stayPct').textContent = data.stay_pct + '%';
+
+      resultPanel.classList.remove('hidden');
+    } catch (err) {
+      errorMsg.textContent = err.message;
+      errorMsg.classList.remove('hidden');
+    }
+  });
+</script>
+
+</body>
+</html>
